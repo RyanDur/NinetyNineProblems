@@ -13,10 +13,7 @@ object S99Int {
   def listPrimesinRange(range: Range): List[Int] =
     (primes dropWhile (x => x < range.head) takeWhile (x => x <= range.last)).toList
 
-  def printGoldbachList(range: Range): Unit =
-    range.filter(x => x.isEven && x > 2).foreach(num => num.goldbach match {
-      case (l, r) => println(num + " = " + l + " + " + r)
-    })
+  def printGoldbachList(range: Range): Unit = printGoldbachListLimited(range, 0)
 
   def printGoldbachListLimited(range: Range, limit: Int): Unit =
     range.filter(x => x.isEven && x > 2).foreach(num => num.goldbach match {
