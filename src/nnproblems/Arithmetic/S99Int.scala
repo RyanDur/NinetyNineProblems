@@ -1,15 +1,21 @@
 package nnproblems.Arithmetic
 
+import scala.annotation.tailrec
+
 object S99Int {
-  def gcd(less: Int, more: Int): Int = (less, more) match {
+  @tailrec final def gcd(less: Int, more: Int): Int = (less, more) match {
     case (_, 0) => less
     case (0, _) => more
     case (a, b) if b > a => gcd(a, b % a)
     case (a, b) => gcd(b, a % b)
   }
 
+  def listPrimesinRange(range: Range): List[Int] =
+    (primes dropWhile (x => x < range.head) takeWhile (x => x <= range.last)).toList
+
+  private val primes: Stream[Int] = Stream.cons(2, Stream.from(3, 2) filter (_.isPrime))
+
   implicit class S99Int(val start: Int) {
-    private val primes: Stream[Int] = Stream.cons(2, Stream.from(3, 2) filter (_.isPrime))
 
     def isPrime: Boolean = (start > 1) && (primes takeWhile (_ <= Math.sqrt(start)) forall (start % _ != 0))
 
@@ -28,6 +34,13 @@ object S99Int {
 
     def primeFactorMultiplicity: List[(Int, Int)] =
       (start.primeFactors groupBy (x => x)).toList sortBy (_._1) map (x => (x._1, x._2 size))
+
+    def goldbach: (Int, Int) = {
+      listPrimesinRange(2 to start).find(p => (start - p).isPrime) match {
+        case None => throw new IllegalArgumentException
+        case Some(value) => (value, start - value)
+      }
+    }
   }
 
 }
