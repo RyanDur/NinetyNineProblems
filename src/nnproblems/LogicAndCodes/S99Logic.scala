@@ -3,6 +3,8 @@ package nnproblems.LogicAndCodes
 import scala.annotation.tailrec
 
 object S99Logic {
+  private var memoized: Map[Int, List[String]] = Map()
+
   def and(a: Boolean, b: Boolean): Boolean = a && b
 
   def or(a: Boolean, b: Boolean): Boolean = a || b
@@ -27,12 +29,25 @@ object S99Logic {
     }.foreach(println)
   }
 
-  def gray(int: Int): List[String] = {
-    val num = math.pow(2, int).toInt
-    (0 until num).map(_.toGreyCode.prePadTo(int, "0")).toList
+  def gray(key: Int): List[String] = {
+    if (key < 0) return Nil
+    memoized.get(key) match {
+      case Some(list) => list
+      case None => createList(key)
+    }
   }
 
-  implicit class MyBool(a: Boolean) {
+  private def createList(key: Int): List[String] = {
+    val end = math.pow(2, key).toInt
+    val start = math.pow(2, key - 1).toInt
+    memoized = memoized ++ Map(key ->
+      (gray(key - 1) ::: (start until end).map(_.toGreyCode).toList).map(_.prePadTo(key, "0")))
+    memoized.getOrElse(key, Nil)
+  }
+
+  def huffman(list: List[(String, Int)]): List[(String, String)] = ???
+
+  implicit class MyBool(val a: Boolean) extends AnyVal {
     def and(b: Boolean): Boolean = a && b
 
     def or(b: Boolean): Boolean = a || b
@@ -46,20 +61,15 @@ object S99Logic {
     def impl(b: Boolean): Boolean = (a and b) or (!a and b) or (!a and !b)
   }
 
-  implicit class MyInt(int: Int) {
-    def toGreyCode: String = {
-      val list = int.toBinaryString.toList
-      list.head + list.foldLeft((list, ""))((l, _) => l match {
-        case (h +: Nil, acc) => (Nil, acc)
-        case (h +: tl, acc) => (tl, acc + (if (h == tl.head) 0 else 1))
-      })._2
-    }
+  implicit class MyInt(val num: Int) extends AnyVal {
+    def toGreyCode: String = (num ^ (num >>> 1)).toBinaryString
   }
 
-  implicit class MyString(str: String) {
+  implicit class MyString(val str: String) extends AnyVal {
     def prePadTo(int: Int, ch: String): String = {
       @tailrec def helper(acc: String, inc: Int): String = inc match {
         case 0 => acc
+        case i if i < 0 => acc
         case i => helper(ch + acc, i - 1)
       }
       helper(str, int - str.length)
