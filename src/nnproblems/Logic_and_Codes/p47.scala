@@ -1,4 +1,4 @@
-package nnproblems.LogicAndCodes
+package nnproblems.Logic_and_Codes
 
 // Truth tables for logical expressions (2).
 // Continue problem P46 by redefining and, or, etc as operators.
@@ -13,7 +13,7 @@ package nnproblems.LogicAndCodes
 // false false false
 
 object p47 extends App {
-  import nnproblems.LogicAndCodes.S99Logic._
+  import nnproblems.Logic_and_Codes.S99Logic._
 
 //  table2((a: Boolean, b: Boolean) => a and (a or not(b)))
 //  println()

@@ -1,4 +1,4 @@
-package nnproblems.LogicAndCodes
+package nnproblems.Logic_and_Codes
 
 import scala.annotation.tailrec
 

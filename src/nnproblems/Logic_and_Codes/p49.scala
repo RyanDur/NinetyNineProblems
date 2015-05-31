@@ -1,4 +1,4 @@
-package nnproblems.LogicAndCodes
+package nnproblems.Logic_and_Codes
 
 // Gray code.
 // An n-bit Gray code is a sequence of n-bit strings constructed
@@ -14,7 +14,7 @@ package nnproblems.LogicAndCodes
 // See if you can use memoization to make the function more efficient.
 
 object p49 extends App {
-  import nnproblems.LogicAndCodes.S99Logic._
+  import nnproblems.Logic_and_Codes.S99Logic._
 
   println(gray(1))
   println(gray(2))

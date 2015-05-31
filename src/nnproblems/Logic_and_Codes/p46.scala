@@ -1,4 +1,4 @@
-package nnproblems.LogicAndCodes
+package nnproblems.Logic_and_Codes
 
 // Truth tables for logical expressions.
 // Define functions and, or, nand, nor, xor, impl, and equ (for logical equivalence)
@@ -24,7 +24,7 @@ package nnproblems.LogicAndCodes
 
 
 object p46 extends App {
-  import nnproblems.LogicAndCodes.S99Logic._
+  import nnproblems.Logic_and_Codes.S99Logic._
 //
 //  println(and(true, true))
 //  println(xor(true, true))

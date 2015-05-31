@@ -1,4 +1,4 @@
-package nnproblems.LogicAndCodes
+package nnproblems.Logic_and_Codes
 
 // Huffman code.
 // First of all, consult a good book on discrete mathematics or
