@@ -115,4 +115,10 @@ object Tree {
   def symmetricBalancedTrees[A](int: Int, value: A): List[Tree[A]] = {
     cBalanced(int, value).filter(_.isSymmetric)
   }
+
+  def completeBinaryTree(nodes: Int, value: String): Tree[String] = nodes match {
+    case i if i < 1 => End
+    case _ =>
+      Node(value, completeBinaryTree(nodes / 2, value), completeBinaryTree((nodes - 1) / 2, value))
+  }
 }
