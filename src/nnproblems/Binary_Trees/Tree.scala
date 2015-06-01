@@ -8,6 +8,8 @@ sealed abstract class Tree[+T] {
   def isSymmetric: Boolean
 
   def isMirrorOf[A >: T](that: Tree[A]): Boolean
+
+  def addValue[U >: T](x: U)(implicit ord: U => Ordered[U]): Tree[U]
 }
 
 case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
@@ -23,6 +25,11 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
     case Node(v, l, r) => left.isMirrorOf(r) && right.isMirrorOf(l)
     case _ => false
   }
+
+  override def addValue[U >: T](x: U)(implicit ord: (U) => Ordered[U]): Tree[U] = this match {
+    case Node(v, l, r) if x < v => Node(v, l.addValue(x), r)
+    case Node(v, l, r) => Node(v, l, r.addValue(x))
+  }
 }
 
 case object End extends Tree[Nothing] {
@@ -35,6 +42,8 @@ case object End extends Tree[Nothing] {
   override def isSymmetric: Boolean = true
 
   override def isMirrorOf[T >: Nothing](that: Tree[T]): Boolean = that == End
+
+  override def addValue[U >: Nothing](x: U)(implicit ord: (U) => Ordered[U]): Tree[U] = Node(x)
 }
 
 object Node {
@@ -53,5 +62,9 @@ object Tree {
       val lesserSubtrees = cBalanced((n - 1) / 2, value)
       val greaterSubtrees = cBalanced((n - 1) / 2 + 1, value)
       lesserSubtrees.flatMap(l => greaterSubtrees.flatMap(g => List(Node(value, l, g), Node(value, g, l))))
+  }
+
+  def fromList[A](list: List[A])(implicit ord: (A) => Ordered[A]): Tree[A] = {
+    list.foldLeft(End: Tree[A])((acc, e) => acc.addValue(e))
   }
 }
