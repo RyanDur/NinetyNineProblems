@@ -1,8 +1,13 @@
 package nnproblems.Binary_Trees
 
 sealed abstract class Tree[+T] {
-  val depth: Int
+  def depth: Int
+
   def isBalanced: Boolean
+
+  def isSymmetric: Boolean
+
+  def isMirrorOf[A >: T](that: Tree[A]): Boolean
 }
 
 case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
@@ -11,6 +16,13 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
   val depth: Int = 1 + math.max(left.depth, right.depth)
 
   override def isBalanced: Boolean = math.abs(left.depth - right.depth) <= 1
+
+  override def isSymmetric: Boolean = left.isMirrorOf(right)
+
+  override def isMirrorOf[A >: T](that: Tree[A]): Boolean = that match {
+    case Node(v, l, r) => left.isMirrorOf(r) && right.isMirrorOf(l)
+    case _ => false
+  }
 }
 
 case object End extends Tree[Nothing] {
@@ -19,10 +31,16 @@ case object End extends Tree[Nothing] {
   val depth: Int = 0
 
   override def isBalanced: Boolean = true
+
+  override def isSymmetric: Boolean = true
+
+  override def isMirrorOf[T >: Nothing](that: Tree[T]): Boolean = that == End
 }
 
 object Node {
   def apply[T](value: T): Node[T] = Node(value, End, End)
+
+  def apply[T](value: T, left: Node[T]): Node[T] = Node(value, left, End)
 }
 
 object Tree {
