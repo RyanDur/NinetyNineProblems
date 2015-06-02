@@ -1,6 +1,7 @@
 package nnproblems.Binary_Trees
 
 sealed abstract class Tree[+T] {
+
   def depth: Int
 
   def isLeaf: Boolean
@@ -11,9 +12,13 @@ sealed abstract class Tree[+T] {
 
   def leafCount: Int
 
+  def inOrder: List[T]
+
   def leafList: List[T]
 
   def internalList: List[T]
+
+  def layoutBinaryTree: String
 
   def atLevel(level: Int): List[T]
 
@@ -23,7 +28,7 @@ sealed abstract class Tree[+T] {
 }
 
 case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
-  lazy val depth: Int = if (isLeaf) 0 else 1 + math.max(left.depth, right.depth)
+  lazy val depth: Int = 1 + math.max(left.depth, right.depth)
 
   lazy val leafCount: Int = if (isLeaf) 1 else left.leafCount + right.leafCount
 
@@ -54,6 +59,17 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
     case 1 => List(value)
     case _ => left.atLevel(level - 1) ::: right.atLevel(level - 1)
   }
+
+  override def layoutBinaryTree: String = {
+    val list = inOrder
+    def layout(tree: Tree[T], y: Int): String = tree match {
+      case Node(v, l, r) => s"T[${list.indexOf(v) + 1} $y]($v ${layout(l, y + 1)} ${layout(r, y + 1)})"
+      case _ => End.toString
+    }
+    layout(this, 1)
+  }
+
+  def inOrder: List[T] = left.inOrder ::: value :: right.inOrder
 }
 
 case object End extends Tree[Nothing] {
@@ -78,6 +94,10 @@ case object End extends Tree[Nothing] {
   override def internalList: List[Nothing] = Nil
 
   override def atLevel(level: Int): List[Nothing] = Nil
+
+  override def layoutBinaryTree: String = End.toString
+
+  override def inOrder: List[Nothing] = Nil
 }
 
 object Node {
