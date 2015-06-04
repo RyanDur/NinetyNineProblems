@@ -30,5 +30,5 @@ package nnproblems.Binary_Trees
 
 object p64 extends App {
   println(Node('a', Node('b', End, Node('c')), Node('d')).layoutBinaryTree)
-  println(Tree.fromList(List('n','k','m','c','a','h','g','e','u','p','s','q')).layoutBinaryTree)
+//  println(Tree.fromList(List('n','k','m','c','a','h','g','e','u','p','s','q')).layoutBinaryTree)
 }

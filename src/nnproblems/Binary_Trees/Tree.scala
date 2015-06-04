@@ -20,6 +20,10 @@ sealed abstract class Tree[+T] {
 
   def layoutBinaryTree: String
 
+  def layoutBinaryTree2: String = layoutBinaryTreeInternal2(1, 1)._1
+
+  def layoutBinaryTreeInternal2(x: Int, depth: Int): (String, Int)
+
   def atLevel(level: Int): List[T]
 
   def isMirrorOf[A >: T](that: Tree[A]): Boolean
@@ -28,7 +32,7 @@ sealed abstract class Tree[+T] {
 }
 
 case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
-  lazy val depth: Int = 1 + math.max(left.depth, right.depth)
+  lazy val depth: Int = 1 + (left.depth max right.depth)
 
   lazy val leafCount: Int = if (isLeaf) 1 else left.leafCount + right.leafCount
 
@@ -46,7 +50,10 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
     case Node(v, l, r) => Node(v, l, r.addValue(x))
   }
 
-  override def toString = "T(" + value.toString + " " + left.toString + " " + right.toString + ")"
+  override def toString = this match {
+    case Node(v, End, End) => s"$value"
+    case _ => s"$value($left,$right)"
+  }
 
   override def isLeaf: Boolean = left == End && right == End
 
@@ -60,16 +67,24 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
     case _ => left.atLevel(level - 1) ::: right.atLevel(level - 1)
   }
 
+  override def layoutBinaryTreeInternal2(x: Int, d: Int): (String, Int) = {
+    val newDepth = math.max(left.depth, right.depth)
+    val (leftTree, myX) = left.layoutBinaryTreeInternal2(x, d + 1)
+    val (rightTree, nextX) = right.layoutBinaryTreeInternal2(myX + 1, d + 1)
+    (s"T[$myX  $d]($value $leftTree $rightTree)", nextX + newDepth)
+  }
+
+
   override def layoutBinaryTree: String = {
     val list = inOrder
     def layout(tree: Tree[T], y: Int): String = tree match {
       case Node(v, l, r) => s"T[${list.indexOf(v) + 1} $y]($v ${layout(l, y + 1)} ${layout(r, y + 1)})"
-      case _ => End.toString
+      case End => End.toString
     }
     layout(this, 1)
   }
 
-  def inOrder: List[T] = left.inOrder ::: value :: right.inOrder
+  override def inOrder: List[T] = left.inOrder ::: value :: right.inOrder
 }
 
 case object End extends Tree[Nothing] {
@@ -85,7 +100,7 @@ case object End extends Tree[Nothing] {
 
   override def addValue[U >: Nothing](x: U)(implicit ord: (U) => Ordered[U]): Tree[U] = Node(x)
 
-  override def toString = "."
+  override def toString = ""
 
   override def isLeaf: Boolean = throw new NoSuchElementException
 
@@ -98,12 +113,19 @@ case object End extends Tree[Nothing] {
   override def layoutBinaryTree: String = End.toString
 
   override def inOrder: List[Nothing] = Nil
+
+  override def layoutBinaryTree2: String = End.toString
+
+  override def layoutBinaryTreeInternal2(x: Int, depth: Int): (String, Int) = (End.toString, x)
 }
 
 object Node {
-  def apply[T](value: T): Node[T] = Node(value, End, End)
 
-  def apply[T](value: T, left: Node[T]): Node[T] = Node(value, left, End)
+  def apply[T](value: T): Tree[T] = Node(value, End, End)
+
+//  def apply[T](value: T, left: Tree[T]): Tree[T] = Node(value, left, End)
+//
+//  def apply[T](value: T, left: Tree[T], right: Tree[T]): Tree[T] = Node(value, left, right)
 }
 
 object Tree {
@@ -140,5 +162,28 @@ object Tree {
     case i if i < 1 => End
     case _ =>
       Node(value, completeBinaryTree(nodes / 2, value), completeBinaryTree((nodes - 1) / 2, value))
+  }
+
+  def string2Tree(s: String): Tree[Char] = {
+    def extractTreeString(s: String, start: Int, end: Char): (String, Int) = {
+      def updateNesting(nesting: Int, pos: Int): Int = s(pos) match {
+        case '(' => nesting + 1
+        case ')' => nesting - 1
+        case _ => nesting
+      }
+      def findStringEnd(pos: Int, nesting: Int): Int =
+        if (s(pos) == end && nesting == 0) pos
+        else findStringEnd(pos + 1, updateNesting(nesting, pos))
+      val strEnd = findStringEnd(start, 0)
+      (s.substring(start, strEnd), strEnd)
+    }
+    s.length match {
+      case 0 => End
+      case 1 => Node(s(0))
+      case _ =>
+        val (leftStr, commaPos) = extractTreeString(s, 2, ',')
+        val (rightStr, _) = extractTreeString(s, commaPos + 1, ')')
+        Node(s(0), string2Tree(leftStr), string2Tree(rightStr))
+    }
   }
 }
