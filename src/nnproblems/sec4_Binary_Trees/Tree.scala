@@ -12,6 +12,8 @@ sealed abstract class Tree[+T] {
 
   def leafCount: Int
 
+  def nodeCount: Int
+
   def leafList: List[T]
 
   def internalList: List[T]
@@ -22,9 +24,7 @@ sealed abstract class Tree[+T] {
 
   def layoutBinaryTree: String
 
-  def layoutBinaryTree2: String = layoutBinaryTreeInternal2(1, 1)._1
-
-  def layoutBinaryTreeInternal2(x: Int, depth: Int): (String, Int)
+  def layoutBinaryTree2: String
 
   def atLevel(level: Int): List[T]
 
@@ -37,6 +37,8 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
   lazy val depth: Int = 1 + (left.depth max right.depth)
 
   lazy val leafCount: Int = if (isLeaf) 1 else left.leafCount + right.leafCount
+
+  lazy val nodeCount: Int = 1 + left.nodeCount + right.nodeCount
 
   override def isBalanced: Boolean = math.abs(left.depth - right.depth) <= 1
 
@@ -52,10 +54,12 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
     case Node(v, l, r) => Node(v, l, r.addValue(x))
   }
 
-  override def toString = this match {
-    case Node(v, End, End) => s"$value"
-    case _ => s"$value($left,$right)"
-  }
+  //  override def toString = this match {
+  //    case Node(v, End, End) => s"$value"
+  //    case _ => s"$value($left,$right)"
+  //  }
+
+  override def toString = "T(" + value.toString + " " + left.toString + " " + right.toString + ")"
 
   override def isLeaf: Boolean = left == End && right == End
 
@@ -69,14 +73,6 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
     case _ => left.atLevel(level - 1) ::: right.atLevel(level - 1)
   }
 
-  override def layoutBinaryTreeInternal2(x: Int, d: Int): (String, Int) = {
-    val newDepth = math.max(left.depth, right.depth)
-    val (leftTree, myX) = left.layoutBinaryTreeInternal2(x, d + 1)
-    val (rightTree, nextX) = right.layoutBinaryTreeInternal2(myX + 1, d + 1)
-    (s"T[$myX  $d]($value $leftTree $rightTree)", nextX + newDepth)
-  }
-
-
   override def layoutBinaryTree: String = {
     val list = inorder
     def layout(tree: Tree[T], y: Int): String = tree match {
@@ -89,6 +85,8 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
   override def inorder: List[T] = left.inorder ::: value :: right.inorder
 
   override def preorder: List[T] = value :: left.preorder ::: right.preorder
+
+  override def layoutBinaryTree2: String = ???
 }
 
 case object End extends Tree[Nothing] {
@@ -104,7 +102,7 @@ case object End extends Tree[Nothing] {
 
   override def addValue[U >: Nothing](x: U)(implicit ord: (U) => Ordered[U]): Tree[U] = Node(x)
 
-  override def toString = ""
+  override def toString = "."
 
   override def isLeaf: Boolean = throw new NoSuchElementException
 
@@ -118,42 +116,37 @@ case object End extends Tree[Nothing] {
 
   override def layoutBinaryTree2: String = End.toString
 
-  override def layoutBinaryTreeInternal2(x: Int, depth: Int): (String, Int) = (End.toString, x)
-
   override def inorder: List[Nothing] = Nil
 
   override def preorder: List[Nothing] = Nil
+
+  override def nodeCount: Int = 0
 }
 
 object Node {
-
   def apply[T](value: T): Tree[T] = Node(value, End, End)
-
-//  def apply[T](value: T, left: Tree[T]): Tree[T] = Node(value, left, End)
-//
-//  def apply[T](value: T, left: Tree[T], right: Tree[T]): Tree[T] = Node(value, left, right)
 }
 
 object Tree {
+  var memo: Map[Int, List[Tree[String]]] = Map()
+
   def hbalTrees(height: Int, value: String): List[Tree[String]] = height match {
-    case h if h < 1 => List(End)
+    case _ if height < 1 => List(End)
     case 1 => List(Node(value))
-    case _ =>
-      val long = hbalTrees(height - 1, value)
-      val short = hbalTrees(height - 2, value)
-      long.flatMap((l) => long.map((r) => Node(value, l, r))) :::
-        long.flatMap((f) => short.flatMap((s) => List(Node(value, f, s), Node(value, s, f))))
+    case h =>
+      val (full, short) = (hbalTrees(h - 1, value), hbalTrees(h - 2, value))
+      full.flatMap(l => full.map(r => Node(value, l, r))) :::
+        full.flatMap(l => short.flatMap(r => List(Node(value, l, r), Node(value, r, l))))
   }
 
-  def cBalanced[A](int: Int, value: A): List[Tree[A]] = int match {
-    case n if n < 1 => List(End)
+  def cBalanced[T](nodes: Int, value: T): List[Tree[T]] = nodes match {
+    case _ if nodes < 1 => List(End)
     case n if n % 2 == 1 =>
-      val subtrees = cBalanced(n / 2, value)
-      subtrees.flatMap(l => subtrees.map(r => Node(value, l, r)))
-    case n if n % 2 == 0 =>
-      val lesserSubtrees = cBalanced((n - 1) / 2, value)
-      val greaterSubtrees = cBalanced((n - 1) / 2 + 1, value)
-      lesserSubtrees.flatMap(l => greaterSubtrees.flatMap(g => List(Node(value, l, g), Node(value, g, l))))
+      val sub = cBalanced(n / 2, value)
+      sub.flatMap(l => sub.map(r => Node(value, l, r)))
+    case n =>
+      val (less, greater) = (cBalanced((n - 1) / 2, value), cBalanced((n - 1) / 2 + 1, value))
+      less.flatMap(l => greater.flatMap(g => List(Node(value, l, g), Node(value, g, l))))
   }
 
   def fromList[A](list: List[A])(implicit ord: (A) => Ordered[A]): Tree[A] = {
@@ -170,26 +163,5 @@ object Tree {
       Node(value, completeBinaryTree(nodes / 2, value), completeBinaryTree((nodes - 1) / 2, value))
   }
 
-  def string2Tree(s: String): Tree[Char] = {
-    def extractTreeString(s: String, start: Int, end: Char): (String, Int) = {
-      def updateNesting(nesting: Int, pos: Int): Int = s(pos) match {
-        case '(' => nesting + 1
-        case ')' => nesting - 1
-        case _ => nesting
-      }
-      def findStringEnd(pos: Int, nesting: Int): Int =
-        if (s(pos) == end && nesting == 0) pos
-        else findStringEnd(pos + 1, updateNesting(nesting, pos))
-      val strEnd = findStringEnd(start, 0)
-      (s.substring(start, strEnd), strEnd)
-    }
-    s.length match {
-      case 0 => End
-      case 1 => Node(s(0))
-      case _ =>
-        val (leftStr, commaPos) = extractTreeString(s, 2, ',')
-        val (rightStr, _) = extractTreeString(s, commaPos + 1, ')')
-        Node(s(0), string2Tree(leftStr), string2Tree(rightStr))
-    }
-  }
+  def string2Tree(s: String): Tree[Char] = ???
 }

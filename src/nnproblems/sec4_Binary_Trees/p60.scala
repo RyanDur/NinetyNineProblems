@@ -2,7 +2,7 @@ package nnproblems.sec4_Binary_Trees
 
 // Construct height-balanced binary trees with a given number of nodes.
 // Consider a height-balanced binary tree of height H. What is the maximum
-// number of nodes it can contain? Clearly, MaxN = 2H - 1. However, what
+// number of nodes it can contain? Clearly, MaxN = 2^H - 1. However, what
 // is the minimum number MinN? This question is more difficult. Try to
 // find a recursive statement and turn it into a function minHbalNodes that
 // takes a height and returns MinN.
@@ -29,4 +29,10 @@ package nnproblems.sec4_Binary_Trees
 
 object p60 extends App {
 
+  val b = Tree.hbalTrees(2, "x")
+  val c = Tree.hbalTrees(3, "x")
+  val d = Tree.hbalTrees(4, "x")
+  val e = Tree.hbalTrees(5, "x")
+  val x = Tree.hbalTrees(6, "x")
+  println(x.groupBy(_.nodeCount).keys.min)
 }

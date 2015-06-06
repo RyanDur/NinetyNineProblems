@@ -15,5 +15,8 @@ package nnproblems.sec4_Binary_Trees
 
 // TODO redo
 object p59 extends App {
-  println(Tree.hbalTrees(3, "x"))
+  val x = Tree.hbalTrees(3, "x")
+  println(x)
+  println(x.map(h => h.depth).toSet)
+  println(x.map(h => h.isBalanced).toSet)
 }
